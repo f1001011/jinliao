@@ -1,0 +1,37 @@
+@import './variables.scss';
+@import './mixins.scss';
+@import './reset.scss';
+
+// 全局基础样式
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  font-family:
+    'Poppins',
+    'Nunito Sans',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Open Sans',
+    'Helvetica Neue',
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #2f3542;
+  background-color: #f8f9fa;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

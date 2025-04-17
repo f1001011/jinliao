@@ -1,0 +1,721 @@
+<template>
+  <PageContainer
+    :title="restaurant?.name || 'Restaurant'"
+    :pullRefresh="true"
+    :noPadding="true"
+    @refresh="fetchRestaurantData"
+  >
+    <div class="restaurant-page">
+      <!-- 餐厅封面区域 -->
+      <div class="restaurant-cover">
+        <div class="img-hover-zoom">
+          <img :src="restaurant?.coverImage" alt="Restaurant Cover" />
+        </div>
+        <div class="restaurant-cover-gradient"></div>
+        <div class="restaurant-cover-content animate-fadeIn">
+          <h1 class="restaurant-name">{{ restaurant?.name }}</h1>
+          <div class="restaurant-info">
+            <span class="restaurant-rating">
+              <svg
+                class="star-icon"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                ></path>
+              </svg>
+              {{ restaurant?.rating }}
+            </span>
+            <span class="restaurant-delivery-time">
+              <svg
+                class="clock-icon"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              {{ restaurant?.deliveryTime }}
+            </span>
+            <span class="restaurant-delivery-fee">
+              {{ restaurant?.deliveryFee }}
+            </span>
+          </div>
+          <div class="restaurant-tags">
+            <span v-for="(tag, index) in restaurant?.tags" :key="index">{{ tag }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 菜单分类导航 -->
+      <div class="category-nav">
+        <div
+          class="category-nav-item"
+          v-for="category in menuCategories"
+          :key="category.id"
+          :class="{ active: activeCategory === category.id }"
+          @click="scrollToCategory(category.id)"
+        >
+          {{ category.name }}
+        </div>
+      </div>
+
+      <!-- 菜单内容区域 -->
+      <div class="menu-container">
+        <div
+          v-for="category in menuCategories"
+          :key="category.id"
+          :id="`category-${category.id}`"
+          class="menu-section"
+        >
+          <h2 class="section-title">{{ category.name }}</h2>
+          <div class="menu-grid">
+            <div
+              v-for="dish in getDishesForCategory(category.id)"
+              :key="dish.id"
+              class="menu-item"
+              @click="navigateToProduct(dish.id)"
+            >
+              <div class="menu-item-image img-hover-zoom">
+                <img :src="dish.image" :alt="dish.name" />
+                <div class="menu-item-price">${{ dish.price.toFixed(2) }}</div>
+              </div>
+              <div class="menu-item-content">
+                <h3 class="menu-item-name">{{ dish.name }}</h3>
+                <p class="menu-item-description">{{ dish.description }}</p>
+                <button class="menu-item-add-btn btn-hover">
+                  Add to cart
+                  <svg
+                    class="plus-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 客户评价区域 -->
+      <div class="reviews-container">
+        <h2 class="section-title">Customer Reviews</h2>
+        <RestaurantReviews
+          :reviews="restaurantReviews"
+          :hasMore="hasMoreReviews"
+          @loadMore="loadMoreReviews"
+        />
+      </div>
+    </div>
+  </PageContainer>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import PageContainer from '@/components/layout/PageContainer.vue'
+import type { MenuItem, MenuCategory, RestaurantDetail } from '@/types/models'
+import RestaurantReviews from '@/components/restaurant/RestaurantReviews.vue'
+
+// 路由和导航
+const route = useRoute()
+const router = useRouter()
+
+// 餐厅数据
+const restaurant = ref<RestaurantDetail | null>(null)
+const activeCategory = ref<number>(0)
+
+// 获取餐厅数据
+const fetchRestaurantData = async () => {
+  try {
+    // 模拟API请求
+    const id = route.params.id
+    console.log(`Fetching restaurant data for ID: ${id}`)
+
+    // 这里将来会替换为实际的API调用
+    setTimeout(() => {
+      restaurant.value = mockRestaurantData
+      activeCategory.value = mockRestaurantData.categories[0]?.id || 0
+    }, 500)
+  } catch (error) {
+    console.error('Error fetching restaurant data:', error)
+  }
+}
+
+// 计算属性：获取菜单分类
+const menuCategories = computed(() => {
+  return restaurant.value?.categories || []
+})
+
+// 根据分类获取菜品
+const getDishesForCategory = (categoryId: number) => {
+  return restaurant.value?.menu.filter((dish) => dish.categoryId === categoryId) || []
+}
+
+// 滚动到指定分类
+const scrollToCategory = (categoryId: number) => {
+  activeCategory.value = categoryId
+  nextTick(() => {
+    const element = document.getElementById(`category-${categoryId}`)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' })
+    }
+  })
+}
+
+// 导航到商品详情页
+const navigateToProduct = (productId: number) => {
+  router.push(`/product/${productId}`)
+}
+
+// 添加评价相关类型和数据
+interface Review {
+  id: number
+  name: string
+  avatar?: string
+  rating: number
+  date: string
+  comment: string
+}
+
+// 添加餐厅评价数据
+const restaurantReviews = ref<Review[]>([
+  {
+    id: 1,
+    name: 'John Smith',
+    avatar: 'https://i.pravatar.cc/100?img=1',
+    rating: 5,
+    date: '2023-10-15',
+    comment:
+      'Absolutely amazing burgers! The Classic Cheeseburger was juicy and flavorful. Definitely coming back for more.',
+  },
+  {
+    id: 2,
+    name: 'Sarah Johnson',
+    avatar: 'https://i.pravatar.cc/100?img=5',
+    rating: 4,
+    date: '2023-10-10',
+    comment:
+      'Great food and fast delivery. The fries were a bit cold, but the burger was perfect. Would recommend!',
+  },
+  {
+    id: 3,
+    name: 'Michael Brown',
+    avatar: 'https://i.pravatar.cc/100?img=12',
+    rating: 5,
+    date: '2023-10-05',
+    comment:
+      'Best burgers in town! The Double Bacon Burger is worth every penny. Service was excellent too.',
+  },
+])
+
+const hasMoreReviews = ref(true)
+
+// 加载更多评价
+const loadMoreReviews = () => {
+  // 模拟加载更多评价
+  const moreReviews: Review[] = [
+    {
+      id: 4,
+      name: 'Emily Davis',
+      avatar: 'https://i.pravatar.cc/100?img=9',
+      rating: 3,
+      date: '2023-09-28',
+      comment:
+        'Decent food but delivery took longer than expected. The burger was good though, just wish it arrived sooner.',
+    },
+    {
+      id: 5,
+      name: 'David Wilson',
+      avatar: 'https://i.pravatar.cc/100?img=15',
+      rating: 4,
+      date: '2023-09-22',
+      comment: 'Really enjoyed the Chicken Burger. It was crispy and flavorful. Will order again.',
+    },
+  ]
+
+  restaurantReviews.value = [...restaurantReviews.value, ...moreReviews]
+  hasMoreReviews.value = false // 示例中加载一次后就没有更多了
+}
+
+// 模拟数据
+const mockRestaurantData: RestaurantDetail = {
+  id: 1,
+  name: 'Burger Palace',
+  coverImage:
+    'https://images.unsplash.com/photo-1561758033-d89a9ad46330?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+  rating: 4.7,
+  deliveryTime: '25-35 min',
+  deliveryFee: 'Free Delivery',
+  tags: ['Burgers', 'American', 'Fast Food', 'Fries'],
+  categories: [
+    { id: 1, name: 'Popular' },
+    { id: 2, name: 'Burgers' },
+    { id: 3, name: 'Sides' },
+    { id: 4, name: 'Beverages' },
+    { id: 5, name: 'Desserts' },
+  ],
+  menu: [
+    {
+      id: 101,
+      name: 'Classic Cheeseburger',
+      description: 'Juicy beef patty with melted cheese, lettuce, tomato, and special sauce',
+      price: 8.99,
+      image:
+        'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+      categoryId: 1,
+    },
+    {
+      id: 102,
+      name: 'Double Bacon Burger',
+      description: 'Two beef patties with crispy bacon, cheese, and BBQ sauce',
+      price: 12.99,
+      image:
+        'https://images.unsplash.com/photo-1553979459-d2229ba7433b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+      categoryId: 1,
+    },
+    {
+      id: 103,
+      name: 'Chicken Burger',
+      description: 'Crispy chicken fillet with lettuce, mayo, and pickles',
+      price: 9.99,
+      image:
+        'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+      categoryId: 2,
+    },
+    {
+      id: 104,
+      name: 'Veggie Burger',
+      description: 'Plant-based patty with fresh vegetables and vegan mayo',
+      price: 10.99,
+      image:
+        'https://images.unsplash.com/photo-1585238342-7684c019e1cb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+      categoryId: 2,
+    },
+    {
+      id: 105,
+      name: 'French Fries',
+      description: 'Crispy golden fries with sea salt',
+      price: 3.99,
+      image:
+        'https://images.unsplash.com/photo-1576107232684-1279f390859f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+      categoryId: 3,
+    },
+    {
+      id: 106,
+      name: 'Onion Rings',
+      description: 'Crispy battered onion rings with dipping sauce',
+      price: 4.99,
+      image:
+        'https://images.unsplash.com/photo-1581873372796-635b67ca2008?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+      categoryId: 3,
+    },
+    {
+      id: 107,
+      name: 'Soft Drink',
+      description: 'Choice of Coca-Cola, Sprite, or Fanta',
+      price: 2.49,
+      image:
+        'https://images.unsplash.com/photo-1581636625402-29b2a704ef13?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+      categoryId: 4,
+    },
+    {
+      id: 108,
+      name: 'Milkshake',
+      description: 'Creamy vanilla, chocolate, or strawberry milkshake',
+      price: 5.99,
+      image:
+        'https://images.unsplash.com/photo-1577805947697-89e18249d767?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+      categoryId: 4,
+    },
+    {
+      id: 109,
+      name: 'Ice Cream Sundae',
+      description: 'Vanilla ice cream with chocolate sauce and cherry',
+      price: 6.49,
+      image:
+        'https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+      categoryId: 5,
+    },
+    {
+      id: 110,
+      name: 'Chocolate Brownie',
+      description: 'Warm chocolate brownie with vanilla ice cream',
+      price: 7.99,
+      image:
+        'https://images.unsplash.com/photo-1564355808539-22fda35bed7e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+      categoryId: 5,
+    },
+  ],
+}
+
+// 生命周期钩子
+onMounted(() => {
+  fetchRestaurantData()
+})
+</script>
+
+<style lang="scss" scoped>
+@import '@/assets/styles/variables.scss';
+@import '@/assets/styles/mixins.scss';
+
+.restaurant-page {
+  background-color: #f8f9fa;
+}
+
+// 餐厅封面区域
+.restaurant-cover {
+  position: relative;
+  height: 250px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  &-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(47, 53, 66, 0.8), rgba(47, 53, 66, 0.3));
+  }
+
+  &-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px;
+    color: white;
+  }
+}
+
+.restaurant-name {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.restaurant-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 14px;
+
+  span {
+    display: flex;
+    align-items: center;
+    margin-right: 16px;
+    margin-bottom: 8px;
+  }
+
+  .star-icon,
+  .clock-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+  }
+
+  .star-icon {
+    color: #ffa502;
+  }
+
+  .restaurant-delivery-fee {
+    color: #10b981;
+    font-weight: 500;
+  }
+}
+
+.restaurant-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  span {
+    font-size: 12px;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    padding: 4px 12px;
+    border-radius: 9999px;
+  }
+}
+
+// 分类导航
+.category-nav {
+  display: flex;
+  overflow-x: auto;
+  background-color: white;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &-item {
+    flex-shrink: 0;
+    padding: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    transition: color 0.3s ease;
+
+    &.active {
+      color: #ff6b00;
+      font-weight: 600;
+
+      &:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 24px;
+        height: 3px;
+        background-color: #ff6b00;
+        border-radius: 9999px;
+      }
+    }
+
+    &:hover:not(.active) {
+      color: #4b5563;
+    }
+  }
+}
+
+// 菜单内容
+.menu-container {
+  padding: 24px 16px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2f3542;
+  margin: 0 0 20px;
+  position: relative;
+
+  &:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -8px;
+    width: 40px;
+    height: 3px;
+    background-color: #ff6b00;
+    border-radius: 9999px;
+  }
+}
+
+.menu-section {
+  margin-bottom: 32px;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.menu-item {
+  background-color: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  }
+
+  &-image {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+  }
+
+  &-price {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background-color: #ff6b00;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 9999px;
+  }
+
+  &-content {
+    padding: 16px;
+  }
+
+  &-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2f3542;
+    margin: 0 0 8px;
+    @include text-truncate;
+  }
+
+  &-description {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 16px;
+    height: 40px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  &-add-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #ff6b00;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+
+    .plus-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      background-color: #e05a00;
+    }
+
+    &:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+    }
+
+    &:hover:after {
+      left: 100%;
+    }
+  }
+}
+
+// 评价区域
+.reviews-container {
+  padding: 24px 16px 32px;
+  background-color: #f8f9fa;
+}
+
+// 动画
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+// 图片悬停缩放
+.img-hover-zoom {
+  overflow: hidden;
+
+  img {
+    transition: transform 0.5s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.1);
+  }
+}
+
+// 按钮悬停效果
+.btn-hover {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+  }
+
+  &:hover:after {
+    left: 100%;
+  }
+}
+</style>
+
+left: 100%;

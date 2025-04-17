@@ -1,0 +1,160 @@
+<?php
+
+namespace app\service;
+
+use app\model\AdsModel;
+use app\model\GoodsCommentModel;
+use app\model\GoodsLabelModel;
+use app\model\GoodsModel;
+use app\model\GoodsTypeModel;
+use app\model\UserAddressModel;
+use app\model\UserAllocationModel;
+use app\model\UserConfigModel;
+use think\console\output\Ask;
+use think\facade\Db;
+
+class GoodServiceaaa extends BaseService
+{
+    //获取商品分类列表
+    public function getGoodsTypeList()
+    {
+        //获取一级分类
+        return GoodsTypeModel::with('children')
+            ->where('pid', 0)
+            ->where('status', GoodsTypeModel::STATUS_SHOW)
+            ->order('sort', 'desc')
+            ->cache(60 * 10)
+            ->field('id,type_name,image,pid')
+            ->select();
+    }
+
+    //获取热门商品
+    public function getHot()
+    {
+        return GoodsModel::with(['prices', 'goods_type'])
+            ->where(
+                [
+                    ['status', '=', GoodsModel::STATUS_SHOW],
+                    ['is_hot', '=', GoodsModel::IS_HOT]
+                ])
+            ->order('sort', 'desc')
+            //->cache(60 * 10)
+            ->field('id,goods_type_id,goods_name,goods_money,head_img,bottom_img,bottom_text')
+            ->select();
+    }
+
+    //获取banner图
+    public function getBanner($shopId = 0)
+    {
+        //shopId =0 查询首页 banner，其他时候查询指定 分销商的id
+        if ($shopId == 0) {
+            return AdsModel::pageList(['status' => 1, 'position' => 0], 'id,img', ['sort' => 'desc'], 600);
+        }
+        //其他时候，查询经销商的
+        $userBannerIds = UserAllocationModel::pageOneColumn(['shop_id' => $shopId, 'type_class' => 1], 'class_id', 180);
+        return AdsModel::pageList([['status', '=', 1], ['id', 'in', $userBannerIds]], 'id,img', ['sort' => 'desc'], 180);
+    }
+
+    //获取商店的封面信息
+    public function getShopCoverInfo()
+    {
+
+    }
+
+    //特色餐厅
+    public function getSpecialtyRestaurant()
+    {
+        //获取是特色餐厅 的分销商
+        $list = UserConfigModel::pageList(['characteristic' => 1], '*', ['sort' => 'desc'], 180)->toArray();
+        $data = [];
+        if (empty($list)) {
+            return $data;
+        }
+        foreach ($list as $key => $value) {
+            //获取分销商的 封面图
+            $data[$key]                = $value;
+            if ($v)
+            $userBannerIds             = UserAllocationModel::pageOneColumn(['shop_id' => $value['user_id'], 'type_class' => 3], 'class_id', 600);
+            $data[$key]['banner_list'] = AdsModel::pageList([['status', '=', 1], ['id', 'in', $userBannerIds]], 'id,img', ['sort' => 'desc'], 600);
+            //获取分销商的 标签
+            $userLabelIds              = UserAllocationModel::pageOneColumn(['shop_id' => $value['user_id'], 'type_class' => 4], 'class_id', 600);
+            $data[$key]['goods_label'] = GoodsLabelModel::pageList([['id', 'in', $userLabelIds]], '*', ['sort' => 'desc'], 600);
+        }
+        return $data;
+    }
+
+    //获取商品评论
+    public function getShopComment($shopId, $position, $page, $limit)
+    {
+        $map = [];
+        // 1 如果 $position =0 的时候。默认给 首页的评论
+        $map[] = ['position', '=', $position];//$position =0    //展示首页的
+        if ($shopId > 0) {
+            $map[] = ['gid', '=', $shopId];//展示商品的
+        }
+        return GoodsCommentModel::pageLimitList($map, $page, $limit, ['id' => 'desc'], 60);
+    }
+
+
+    //获取指定分类的店铺
+//    public function getStoreGoodsList(mixed $typeId, mixed $typeClass, mixed $page, mixed $limit)
+//    {
+//        $map = [];
+//        if ($typeId > 0) {
+//            $map[] = ['shop_class', 'like', $typeId . '%'];//展示商品的
+//        }
+//
+//        //关联表  allocations
+//        return UserConfigModel::with(
+//            [
+//                'allocations' => function ($query) use ($typeClass) {
+//                    $query->with('ads')->where('type_class', $typeClass);
+//                }
+//            ])
+//            ->where($map) // 例如查询商品地址类型
+//            ->cache(10)
+//            ->paginate(
+//                [
+//                    'list_rows' => $limit,
+//                    'page'      => $page,
+//                ])
+//            ->each(
+//                function ($item, $key) {
+//                    $ads = [];
+//                    //把banner图遍历出来，放在数组外面一层
+//                    if ($item->allocations) {
+//                        foreach ($item->allocations as $k => $v) {
+//                            $ads[] = $v->ads ?? '';
+//                        }
+//                    }
+//                    //unset($item->allocations);
+//                    $item->banner = $ads;
+//                });
+//    }
+
+    public function getStoreGoodsList(mixed $typeId, mixed $typeClass, mixed $page, mixed $limit)
+    {
+        $map = [];
+        if ($typeId > 0) {
+            $map[] = ['shop_class', 'like', $typeId . '%'];//展示商品的
+        }
+        //查询满足条件的用户
+
+        UserConfigModel::where($map)
+            ->cache(10)
+            ->paginate(
+                [
+                    'list_rows' => $limit,
+                    'page'      => $page,
+                ])->each(function ($item, $key) {
+                    //1查询用户店铺商品封面图
+                   //$fenmiantu =  UserAllocationModel::where('type_class',3)->cache(60)->where('shop_id',$item->user_id)->column('class_id');
+                    //2查询用户商品标签
+                    //$label =  UserAllocationModel::where('type_class',4)->cache(60)->where('shop_id',$item->user_id)->column('class_id');
+                    //3查询用户的封面图
+
+                });
+
+
+    }
+}
