@@ -25,6 +25,7 @@ Route::group(
     Route::get('/getGoodsComment/[:shopId]/[:page]/[:limit]/[:position]', GOODS_CLASS . '/GetGoodsComment');#获取商品评论
     Route::get('/getStoresList/[:typeId]/[:page]/[:limit]', GOODS_CLASS . '/GetStoresList');#获取商店列表
     Route::get('/getShopGoodsList/[:shopId]/[:classId]/[:page]/[:limit]', GOODS_CLASS . '/GetShopGoodsList');#获取商店中的商品列表
+    Route::get('/getShopGoodsHotList/[:limit]', GOODS_CLASS . '/GetShopGoodsHotList');#获取商店中的商品 推荐 列表
     Route::get('/getGoodsDetails/[:goodsId]', GOODS_CLASS . '/GetGoodsDetails');#获取商品详情
     Route::post('/setUpload', INDEX_CLASS . '/uploadImage');#上传图片接口
 })->middleware(think\middleware\AllowCrossDomain::class);

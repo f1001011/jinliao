@@ -174,4 +174,18 @@ class GoodService extends BaseService
        $data = GoodsModel::where(['id'=>$goodsId])->with(['goodsType','prices','goodsLabel'])->find();
        return $data;
     }
+
+    //查询商店的推荐商品，通过排序控制
+    public function getShopGoodsHotList(mixed $shopId, mixed $limit)
+    {
+        $pageOneColumn = UserAllocationModel::pageOneColumn(['type_class' => UserAllocationModel::TYPE_CLASS_GOODS, 'shop_id' => $shopId]);
+        if (empty($pageOneColumn)) {
+            return [];
+        }
+
+        $map[] = ['id', 'in', $pageOneColumn];
+        //2 查询商品列表
+        $list = GoodsModel::pageLimitSelectList($map,$limit);
+        return $list;
+    }
 }

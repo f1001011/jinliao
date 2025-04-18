@@ -32,10 +32,10 @@
             </div>
 
             <div class="login-page__form-group">
-              <label class="login-page__label">Email</label>
+              <label class="login-page__label">Phone</label>
               <div class="login-page__input-wrapper">
                 <i class="fas fa-envelope"></i>
-                <input v-model="loginForm.email" type="email" class="login-page__input" placeholder="Enter your email"
+                <input v-model="loginForm.phone" type="number" class="login-page__input" placeholder="Enter your phone"
                   required />
               </div>
               <span v-if="errors.login.email" class="login-page__error">{{
@@ -85,15 +85,15 @@
 
 
             <div class="login-page__form-group">
-              <label class="login-page__label">Email</label>
+              <label class="login-page__label">Phone</label>
               <div class="login-page__input-wrapper">
                 <i class="fas fa-envelope"></i>
-                <input v-model="registerForm.email" type="email" class="login-page__input"
-                  placeholder="Enter your email" required />
+                <input v-model="registerForm.phone" type="number" class="login-page__input"
+                  placeholder="Enter your phone" required />
               </div>
-              <span v-if="errors.register.email" class="login-page__error">
-                {{ errors.register.email }}
-              </span>
+             <!-- <span v-if="errors.register.phone" class="login-page__error">
+                {{ errors.register.phone }}
+              </span> -->
             </div>
 
             <div class="login-page__form-group">
@@ -180,6 +180,7 @@ const isRegisterLoading = ref(false)
 // Login form data
 const loginForm = reactive({
   email: '',
+  phone: '',
   password: '',
   rememberMe: false,
 })
@@ -188,6 +189,7 @@ const loginForm = reactive({
 const registerForm = reactive({
   name: '',
   email: '',
+  phone: '',
   password: '',
   apassword: '',
   agreeTerms: false,
@@ -258,13 +260,13 @@ const validateRegisterForm = () => {
     isValid = false
   }
 
-  if (!registerForm.email) {
-    errors.register.email = 'Please enter your email'
-    isValid = false
-  } else if (!/\S+@\S+\.\S+/.test(registerForm.email)) {
-    errors.register.email = 'Please enter a valid email address'
-    isValid = false
-  }
+  // if (!registerForm.phone) {
+  //   errors.register.email = 'Please enter your email'
+  //   isValid = false
+  // } else if (!/\S+@\S+\.\S+/.test(registerForm.email)) {
+  //   errors.register.email = 'Please enter a valid email address'
+  //   isValid = false
+  // }
 
   if (!registerForm.password) {
     errors.register.password = 'Please enter a password'

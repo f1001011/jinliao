@@ -78,6 +78,14 @@ class Goods extends Base
         return show(Code::SUCCESS, $list);
     }
 
+    //获取店铺商品推荐列表
+    public function GetShopGoodsHotList()
+    {
+        $shopId = $this->request->param('shopId/d', 0);
+        $limit    = $this->request->param('limit/d', 10);
+        $list     = GoodService::getInstance()->getShopGoodsHotList($shopId, $limit);
+        return show(Code::SUCCESS, $list);
+    }
     //获取商品详情
     public function GetGoodsDetails()
     {

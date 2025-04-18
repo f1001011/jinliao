@@ -10,6 +10,8 @@ class GoodsModel extends BaseModel
     public $name = 'common_goods';
 
 
+
+
     public function getHeadImgAttr($value)
     {
         //1 赋值域名 ，2 数组序列化
@@ -43,5 +45,11 @@ class GoodsModel extends BaseModel
         return $this->hasMany('GoodsMoneyModel', 'gid')
             ->order('sort', 'desc')
             ->field('id, money_name,money, gid');
+    }
+
+    //查询指定的数据
+    public static function pageLimitSelectList($map, $limit, $order = ['buy_num' => 'desc'])
+    {
+        return self::where($map)->limit($limit)->order($order)->select();
     }
 }
