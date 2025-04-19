@@ -198,12 +198,12 @@ const registerForm = reactive({
 // Form validation errors
 const errors = reactive({
   login: {
-    email: '',
+    phone: '',
     password: '',
   },
   register: {
     name: '',
-    email: '',
+    phone: '',
     password: '',
     agreeTerms: '',
   },
@@ -213,13 +213,13 @@ const errors = reactive({
 const clearErrors = (formType: 'login' | 'register') => {
   if (formType === 'login') {
     errors.login = {
-      email: '',
+      phone: '',
       password: '',
     }
   } else {
     errors.register = {
       name: '',
-      email: '',
+      phone: '',
       password: '',
       agreeTerms: '',
     }
@@ -305,11 +305,11 @@ const handleLogin = async () => {
     }
 
     login(data).then((res: any) => {
-      console.error(res)
+		if(res.code == 0){
+				
+		}
     })
- register(data).then((res: any) => {
-      console.error(res)
-    })
+ 
     // 模拟登录成功
     setTimeout(() => {
       // 假设登录成功后从API获取的用户信息
@@ -329,7 +329,7 @@ const handleLogin = async () => {
     }, 1000)
   } catch (loginError) {
     // 处理登录错误
-    errors.login.email = 'Email or password is incorrect'
+    errors.login.phone = 'Email or password is incorrect'
   } finally {
     isLoginLoading.value = false
   }
@@ -371,7 +371,7 @@ const handleRegister = async () => {
     }, 1000)
   } catch (registerError) {
     // 处理注册错误
-    errors.register.email = 'This email is already registered'
+    errors.register.phone = 'This email is already registered'
   } finally {
     isRegisterLoading.value = false
   }
