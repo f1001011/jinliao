@@ -22,7 +22,7 @@ class Login extends Base
                 ->check($post);
         } catch (ValidateException $e) {
             // 验证失败 输出错误信息
-            return show(Code::ERROR, [],Code::WARNING, $e->getError());
+            return show(Code::ERROR, [],$e->getError());
         }
         //1 判断 密码是否一样
 

@@ -28,7 +28,16 @@ Route::group(
     Route::get('/getShopGoodsHotList/[:limit]', GOODS_CLASS . '/GetShopGoodsHotList');#获取商店中的商品 推荐 列表
     Route::get('/getGoodsDetails/[:goodsId]', GOODS_CLASS . '/GetGoodsDetails');#获取商品详情
     Route::post('/setUpload', INDEX_CLASS . '/uploadImage');#上传图片接口
-})->middleware(think\middleware\AllowCrossDomain::class);
+})
+    ->option([
+    'header' => [
+        'Access-Control-Allow-Origin' => '*',
+        'Access-Control-Allow-Methods' => 'POST, OPTIONS',
+        'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+        'Access-Control-Allow-Credentials' => 'true',
+    ]
+])
+;
 
 const USER_CLASS       = User::class;
 const SHOP_ORDER_CLASS = ShopOrder::class;
@@ -40,7 +49,16 @@ Route::group(
     Route::post('/setUserPlaceOrder', SHOP_ORDER_CLASS . '/SetUserPlaceOrder');//用户下单页面
     Route::post('/getUserOrderData', SHOP_ORDER_CLASS . '/GetUserOrderData');//订单详情页面
     Route::post('/getUserOrderDataList', SHOP_ORDER_CLASS . '/GetUserOrderDataList');//订单里个表页面
-});
+})
+    ->option([
+    'header' => [
+        'Access-Control-Allow-Origin' => '*',
+        'Access-Control-Allow-Methods' => 'POST, OPTIONS',
+        'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+        'Access-Control-Allow-Credentials' => 'true',
+    ]
+])
+;
 
 
 Route::auto();

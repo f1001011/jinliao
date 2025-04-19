@@ -9,5 +9,5 @@ return [
     // Session初始化
     // \think\middleware\SessionInit::class
     \app\middleware\LogSqlMiddleware::class,
-    think\middleware\AllowCrossDomain::class,
+//    think\middleware\AllowCrossDomain::class,
 ];

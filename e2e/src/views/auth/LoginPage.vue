@@ -231,13 +231,13 @@ const validateLoginForm = () => {
   clearErrors('login')
   let isValid = true
 
-  if (!loginForm.email) {
-    errors.login.email = 'Please enter your email'
-    isValid = false
-  } else if (!/\S+@\S+\.\S+/.test(loginForm.email)) {
-    errors.login.email = 'Please enter a valid email address'
-    isValid = false
-  }
+  // if (!loginForm.email) {
+  //   errors.login.email = 'Please enter your email'
+  //   isValid = false
+  // } else if (!/\S+@\S+\.\S+/.test(loginForm.email)) {
+  //   errors.login.email = 'Please enter a valid email address'
+  //   isValid = false
+  // }
 
   if (!loginForm.password) {
     errors.login.password = 'Please enter your password'
@@ -293,13 +293,13 @@ const handleLogin = async () => {
 
     // 登录逻辑 - 模拟API调用
     // 实际应用中需要替换为真实的登录API
-    console.error('Logging in with:', {
-      email: loginForm.email,
-      password: loginForm.password,
-    })
+    // console.error('Logging in with:', {
+    //   email: loginForm.email,
+    //   password: loginForm.password,
+    // })
 
     let data = {
-      phone: loginForm.email,
+      phone: loginForm.phone,
       pwd: loginForm.password,
       captcha: ""
     }
@@ -307,24 +307,26 @@ const handleLogin = async () => {
     login(data).then((res: any) => {
       console.error(res)
     })
-
+ register(data).then((res: any) => {
+      console.error(res)
+    })
     // 模拟登录成功
-    // setTimeout(() => {
-    //   // 假设登录成功后从API获取的用户信息
-    //   const userData = {
-    //     id: '123',
-    //     name: 'Test User',
-    //     email: loginForm.email,
-    //     role: 'user' as 'user' | 'distributor' | 'agent' | 'admin',
-    //     avatar: 'https://i.pravatar.cc/300',
-    //   }
+    setTimeout(() => {
+      // 假设登录成功后从API获取的用户信息
+      const userData = {
+        id: '123',
+        name: 'Test User',
+        email: loginForm.email,
+        role: 'user' as 'user' | 'distributor' | 'agent' | 'admin',
+        avatar: 'https://i.pravatar.cc/300',
+      }
 
-    //   // 更新用户状态
-    //   userStore.setUser(userData)
+      // 更新用户状态
+      userStore.setUser(userData)
 
-    //   // 如果登录成功，跳转到主页
-    //   router.push('/')
-    // }, 1000)
+      // 如果登录成功，跳转到主页
+      router.push('/')
+    }, 1000)
   } catch (loginError) {
     // 处理登录错误
     errors.login.email = 'Email or password is incorrect'
@@ -342,17 +344,17 @@ const handleRegister = async () => {
 
     // 注册逻辑 - 模拟API调用
     // 实际应用中需要替换为真实的注册API
-    console.log('Registering with:', {
-      name: registerForm.name,
-      email: registerForm.email,
-      password: registerForm.password,
-    })
+    // console.log('Registering with:', {
+    //   name: registerForm.name,
+    //   email: registerForm.phone,
+    //   password: registerForm.password,
+    // })
 
     let data = {
-      phone: registerForm.email,
+      phone: registerForm.phone,
       pwd: registerForm.password,
       captcha: "",
-      upwd: "",
+      upwd: registerForm.password,
       // name: registerForm.name,
     }
 

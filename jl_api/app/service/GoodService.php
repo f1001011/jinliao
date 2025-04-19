@@ -49,7 +49,7 @@ class GoodService extends BaseService
             ->order('sort', 'desc')
             ->cache(60 * 10)
             ->limit($limit)
-            ->field('id,goods_type_id,goods_name,goods_money,head_img,bottom_img,bottom_text')
+            ->field('id,star,goods_type_id,goods_name,goods_money,head_img,bottom_img,bottom_text')
             ->select();
     }
 
